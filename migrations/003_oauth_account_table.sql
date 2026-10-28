@@ -1,0 +1,14 @@
+
+CREATE TABLE oauthAccounts(
+    id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+
+    oauth_email VARCHAR(255) UNIQUE NOT NULL,
+
+    user_id UUID NOT NULL REFERENCES users ON DELETE CASCADE,
+
+    google_id VARCHAR(255) UNIQUE NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
