@@ -56,3 +56,7 @@ export const loginUser = async function(email : string, password : string):Promi
     return {accessToken,refreshToken};
 
 }
+
+export const generateNewAccessToken = async function(refreshToken : any):Promise<string>{
+    
+}
