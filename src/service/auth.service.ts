@@ -5,7 +5,7 @@ import { AppError } from "../error/appError";
 import {logger} from "../lib/logger";
 import { comparePassword } from "../lib/passwordHashFunction";
 import { signAccessToken, signRefreshToken } from "../lib/token";
-import { createUser, findUserByEmail, findUserByEmailAndPassword } from "../repository/auth.repository";
+import { createUser, findRefreshToken, findUserByEmail, findUserByEmailAndPassword, findUserById } from "../repository/auth.repository";
 import {RegisterUserResponse } from "../types/auth.types";
 
 
@@ -57,6 +57,24 @@ export const loginUser = async function(email : string, password : string):Promi
 
 }
 
-export const generateNewAccessToken = async function(refreshToken : any):Promise<string>{
-    
+export const generateNewAccessToken = async function(refreshToken : string):Promise<string>{
+    const storedRefreshToken = await findRefreshToken(refreshToken);
+    if(!storedRefreshToken){
+        throw new AppError("Refresh token not found. Please login again.",404);
+    }
+    if(storedRefreshToken.expiresAt < new Date()){
+        throw new AppError("Refresh token has expired. Please login again.",401);
+    }
+
+    const user = await findUserById(storedRefreshToken.userId);
+    if(!user){
+        throw new AppError("User not found. Please login again.",404);
+    }
+    const newAccessToken = await signAccessToken({
+        userId : user.id,
+        email : user.email,
+        role : user.role,
+        created_at : user.created_at
+    })
+    return newAccessToken;
 }

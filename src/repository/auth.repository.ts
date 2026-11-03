@@ -47,3 +47,18 @@ export const  createRefreshToken = async(payload : RefreshTokenPayload):Promise<
         return false;
     }
 }
+
+export async function findRefreshToken(hashedToken : string):Promise<RefreshTokenRow | null>{
+    const result = await pool.query<RefreshTokenRow>(`
+        SELECT id,hashedToken,userId,expires_at,created_at FROM refreshToken WHERE hashedToken = $1
+        `,[hashedToken]);
+    return result.rows[0] ?? null;
+}
+
+export async function findUserById(userId : String): Promise<User | null>{
+    const result = await pool.query<DBUserRow>(`
+        SELECT id,email,role,created_at,updated_at FROM users WHERE id = $1
+        `,[userId]);
+
+    return result.rows[0] ?? null;
+}
