@@ -62,19 +62,15 @@ export const generateNewAccessToken = async function(refreshToken : string):Prom
     if(!storedRefreshToken){
         throw new AppError("Refresh token not found. Please login again.",404);
     }
-    if(storedRefreshToken.expiresAt < new Date()){
+    if(storedRefreshToken.expires_at < new Date()){
         throw new AppError("Refresh token has expired. Please login again.",401);
     }
 
-    const user = await findUserById(storedRefreshToken.userId);
-    if(!user){
-        throw new AppError("User not found. Please login again.",404);
-    }
     const newAccessToken = await signAccessToken({
-        userId : user.id,
-        email : user.email,
-        role : user.role,
-        created_at : user.created_at
+        userId : storedRefreshToken.user_id,
+        email : storedRefreshToken.email,
+        role : storedRefreshToken.role,
+        created_at : storedRefreshToken.created_at
     })
     return newAccessToken;
 }

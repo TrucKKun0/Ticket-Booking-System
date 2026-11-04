@@ -37,6 +37,17 @@ export type RefreshTokenRow = {
     id : string,
     hashedToken : string,
     userId : string,
-    expiresAt : Date,
+    token_expiresAt : Date,
     created_at : Date
+}
+
+export type RefreshTokenWithUser = {
+    refresh_token_id : string,
+    hashedToken : string,
+    expires_at : Date,
+    user_id : string,
+    email : string,
+    role : string,
+    created_at: Date
+    updated_at : Date
 }

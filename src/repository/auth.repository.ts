@@ -1,7 +1,7 @@
 
 
 import {pool} from "../lib/db"
-import {DBUserRow, DBUserRowWithPassword, RefreshTokenPayload, RefreshTokenRow, User } from "../types/auth.types"
+import {DBUserRow, DBUserRowWithPassword, RefreshTokenPayload, RefreshTokenRow, RefreshTokenWithUser, User } from "../types/auth.types"
 
 
 
@@ -48,9 +48,13 @@ export const  createRefreshToken = async(payload : RefreshTokenPayload):Promise<
     }
 }
 
-export async function findRefreshToken(hashedToken : string):Promise<RefreshTokenRow | null>{
-    const result = await pool.query<RefreshTokenRow>(`
-        SELECT id,hashedToken,userId,expires_at,created_at FROM refreshToken WHERE hashedToken = $1
+export async function findRefreshToken(hashedToken : string):Promise<RefreshTokenWithUser| null>{
+    const result = await pool.query<RefreshTokenWithUser>(`
+        SELECT r.id as refresh_token_id,r.hashedToken,r.expires_at,u.id as user_id,u.email,u.role,u.created_at,u.updated_at
+        FROM refreshToken r
+        INNER JOIN 
+        users u  ON r.userId = u.id
+        WHERE r.hashedToken = $1
         `,[hashedToken]);
     return result.rows[0] ?? null;
 }
