@@ -24,7 +24,7 @@ export type AccessTokenPayload = {
 }
 
 export type DBUserRowWithPassword  = RegisterUserResponse & {
-    password : string
+    passwordHash : string
 }
 
 export type RefreshTokenPayload = {

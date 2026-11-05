@@ -3,7 +3,7 @@
 import { MINIMUM_PASSWORD_LENGTH } from "../const/authConst";
 import { AppError } from "../error/appError";
 import {logger} from "../lib/logger";
-import { comparePassword } from "../lib/passwordHashFunction";
+import { comparePassword, hashPassword } from "../lib/passwordHashFunction";
 import { signAccessToken, signRefreshToken } from "../lib/token";
 import { createUser, findRefreshToken, findUserByEmail, findUserByEmailAndPassword, findUserById } from "../repository/auth.repository";
 import {RegisterUserResponse } from "../types/auth.types";
@@ -18,15 +18,17 @@ export const registerUser = async function(email: string,password : string):Prom
         throw new AppError(`Password must be at least ${MINIMUM_PASSWORD_LENGTH} characters long`,400);
     }
 
-    const normalizedEmail = email.toLocaleLowerCase().trim();
+    const normalizedEmail = email.toLowerCase().trim();
 
     const existingUser = await findUserByEmail(normalizedEmail);
 
     if (existingUser) {
-        throw new AppError("User with this email already exists", 409);
+        throw new AppError("User with this email already exists", 400);
     }
 
-    const registeredUser =  await createUser(normalizedEmail,password);
+    const hashedPassword = await hashPassword(password);
+
+    const registeredUser =  await createUser(normalizedEmail,hashedPassword);
     return registeredUser;
 
 }
@@ -37,10 +39,14 @@ export const loginUser = async function(email : string, password : string):Promi
     }
     const normalizedEmail = email.toLowerCase().trim();
     const user = await findUserByEmailAndPassword(normalizedEmail);
-    if(!user.password){
+    if(!user){
+        throw new AppError("User not found",404);
+    }
+
+    if(!user.passwordHash){
         throw new AppError("Incorrect email or password",401);
     }
-    const isPasswordValid = await comparePassword(password,user.password);
+    const isPasswordValid = await comparePassword(password,user.passwordHash);
     if(!isPasswordValid){
         throw new AppError("Incorrect email or password",401);
     }
@@ -60,7 +66,7 @@ export const loginUser = async function(email : string, password : string):Promi
 export const generateNewAccessToken = async function(refreshToken : string):Promise<string>{
     const storedRefreshToken = await findRefreshToken(refreshToken);
     if(!storedRefreshToken){
-        throw new AppError("Refresh token not found. Please login again.",404);
+        throw new AppError("Refresh token not found. Please login again.",401);
     }
     if(storedRefreshToken.expires_at < new Date()){
         throw new AppError("Refresh token has expired. Please login again.",401);

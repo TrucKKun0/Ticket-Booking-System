@@ -15,19 +15,19 @@ export const findUserByEmail = async function (email : string):Promise<User | nu
 }
 
 
-export const createUser = async function(email : string, pasword: string):Promise<User >{
+export const createUser = async function(email : string, hashedPassword: string):Promise<User >{
 
     const result = await pool.query<DBUserRow>(`
         
         INSERT INTO users (email,passowrd) VALUES ($1,$2) 
         RETURNING id,email,role,created_at,updated_at
-        `,[email,pasword]);
+        `,[email,hashedPassword]);
 
         return result.rows[0];
 
 }
 
-export const findUserByEmailAndPassword = async function(email : string):Promise<DBUserRowWithPassword>{
+export const findUserByEmailAndPassword = async function(email : string):Promise<DBUserRowWithPassword | null>{
 
     const result = await pool.query<DBUserRowWithPassword>(`
         SELECT id,email,role,created_at,updated_at,passwordHash FROM users WHERE email = $1
@@ -38,7 +38,7 @@ export const findUserByEmailAndPassword = async function(email : string):Promise
 export const  createRefreshToken = async(payload : RefreshTokenPayload):Promise<boolean> =>{
     const {hashedToken,userId,expiresAt} = payload;
     const result = await pool.query<RefreshTokenRow>(`
-        INSERT INTO refreshToken(hashedToken,userId,expiresAt) VALUES ($1,$2,$3)
+        INSERT INTO refreshToken(token,userId,expiresAt) VALUES ($1,$2,$3)
         `,[hashedToken,userId,expiresAt]);
 
     if(result){
@@ -50,11 +50,11 @@ export const  createRefreshToken = async(payload : RefreshTokenPayload):Promise<
 
 export async function findRefreshToken(hashedToken : string):Promise<RefreshTokenWithUser| null>{
     const result = await pool.query<RefreshTokenWithUser>(`
-        SELECT r.id as refresh_token_id,r.hashedToken,r.expires_at,u.id as user_id,u.email,u.role,u.created_at,u.updated_at
+        SELECT r.id as refresh_token_id,r.token as hashedToken,r.expires_at,u.id as user_id,u.email,u.role,u.created_at,u.updated_at
         FROM refreshToken r
         INNER JOIN 
         users u  ON r.userId = u.id
-        WHERE r.hashedToken = $1
+        WHERE r.token = $1
         `,[hashedToken]);
     return result.rows[0] ?? null;
 }

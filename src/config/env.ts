@@ -12,7 +12,7 @@ function checkEnvVariable(key:string):string{
 export const env = {
     port : process.env.PORT,
     log_level : checkEnvVariable("LOG_LEVEL"),
-    isProduction : (process.env.NODE_ENV ?? "development") === "prodcution",
+    isProduction : (process.env.NODE_ENV ?? "development") === "production",
     nodeEnv : process.env.NODE_ENV,
     databaseurl:process.env.DATABASE_URL,
     jwtAccessSecret: checkEnvVariable("JWT_ACCESS_SECRET"),
