@@ -13,8 +13,8 @@ export function createApp (){
     app.use(cors());
     // single entry route to whole api of system 
     app.use("/api",apiRouter);
-    app.use(errorHandler);
     app.use(urlNotFoundHandler);
+    app.use(errorHandler);
     
     return app;
 

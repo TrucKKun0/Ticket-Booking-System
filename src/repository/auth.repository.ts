@@ -19,7 +19,7 @@ export const createUser = async function(email : string, hashedPassword: string)
 
     const result = await pool.query<DBUserRow>(`
         
-        INSERT INTO users (email,passowrd) VALUES ($1,$2) 
+        INSERT INTO users (email,passwordHash) VALUES ($1,$2) 
         RETURNING id,email,role,created_at,updated_at
         `,[email,hashedPassword]);
 
@@ -38,7 +38,7 @@ export const findUserByEmailAndPassword = async function(email : string):Promise
 export const  createRefreshToken = async(payload : RefreshTokenPayload):Promise<boolean> =>{
     const {hashedToken,userId,expiresAt} = payload;
     const result = await pool.query<RefreshTokenRow>(`
-        INSERT INTO refreshToken(token,userId,expiresAt) VALUES ($1,$2,$3)
+        INSERT INTO refreshToken(token,userId,expires_at) VALUES ($1,$2,$3)
         `,[hashedToken,userId,expiresAt]);
 
     if(result){
@@ -53,7 +53,7 @@ export async function findRefreshToken(hashedToken : string):Promise<RefreshToke
         SELECT r.id as refresh_token_id,r.token as hashedToken,r.expires_at,u.id as user_id,u.email,u.role,u.created_at,u.updated_at
         FROM refreshToken r
         INNER JOIN 
-        users u  ON r.userId = u.id
+        users u  ON r.user_id = u.id
         WHERE r.token = $1
         `,[hashedToken]);
     return result.rows[0] ?? null;
